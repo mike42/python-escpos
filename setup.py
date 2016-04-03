@@ -43,6 +43,7 @@ setup(
     url='https://github.com/python-escpos/python-escpos',
     download_url='https://github.com/python-escpos/python-escpos/archive/master.zip',
     description='Python library to manipulate ESC/POS Printers',
+    bugtrack_url='https://github.com/python-escpos/python-escpos/issues',
     license='GNU GPL v3',
     long_description=read('README.rst'),
     author='Manuel F Martinez',
@@ -71,10 +72,12 @@ setup(
         'qrcode>=4.0',
         'pyserial',
         'six',
+        'appdirs',
+        'pyyaml',
     ],
     setup_requires=[
         'setuptools_scm',
     ],
-    tests_require=['tox', 'nose'],
+    tests_require=['tox', 'nose', 'scripttest'],
     cmdclass={'test': Tox},
 )

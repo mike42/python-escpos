@@ -83,13 +83,13 @@ class Escpos(object):
         pbuffer = b''
 
         self._raw(S_RASTER_N)
-        pbuffer = "%02X%02X%02X%02X" % (((size[0]//size[1])//8), 0, size[1] & 0xff, size[1] >> 8)
+        pbuffer = "{0:02X}{1:02X}{2:02X}{3:02X}".format(((size[0]//size[1])//8), 0, size[1] & 0xff, size[1] >> 8)
         self._raw(binascii.unhexlify(pbuffer))
         pbuffer = ""
 
         while i < len(line):
             hex_string = int(line[i:i+8], 2)
-            pbuffer += "%02X" % hex_string
+            pbuffer += "{0:02X}".format(hex_string)
             i += 8
             cont += 1
             if cont % 4 == 0:
@@ -135,7 +135,7 @@ class Escpos(object):
                 for x in range(pattern_len):
                     if im_color <= (255 * 3 / pattern_len * (x+1)):
                         if im_pattern[x] == "X":
-                            pix_line += "%d" % switch
+                            pix_line += "{0:d}".format(switch)
                         else:
                             pix_line += im_pattern[x]
                         break
@@ -176,9 +176,14 @@ class Escpos(object):
     def fullimage(self, img, max_height=860, width=512, histeq=True, bandsize=255):
         """ Resizes and prints an arbitrarily sized image
 
+        .. warning:: The image-printing-API is currently under development. Please do not consider this method part
+                     of the API. It might be subject to change without further notice.
+
         .. todo:: Seems to be broken. Write test that simply executes function with a dummy printer in order to
                   check for bugs like these in the future.
         """
+        print("WARNING: The image-printing-API is currently under development. Please do not consider this "
+              "function part of the API yet.")
         if isinstance(img, Image.Image):
             im = img.convert("RGB")
         else:
@@ -218,10 +223,15 @@ class Escpos(object):
     def direct_image(self, image):
         """ Direct printing function for pictures
 
+        .. warning:: The image-printing-API is currently under development. Please do not consider this method part
+                     of the API. It might be subject to change without further notice.
+
         This function is rather fragile and will fail when the Image object is not suited.
 
         :param image: PIL image object, containing a 1-bit picture
         """
+        print("WARNING: The image-printing-API is currently under development. Please do not consider this "
+              "function part of the API yet.")
         mask = 0x80
         i = 0
         temp = 0
@@ -230,10 +240,10 @@ class Escpos(object):
         self._raw(S_RASTER_N)
         headerX = int(width / 8)
         headerY = height
-        buf = "%02X" % (headerX & 0xff)
-        buf += "%02X" % ((headerX >> 8) & 0xff)
-        buf += "%02X" % (headerY & 0xff)
-        buf += "%02X" % ((headerY >> 8) & 0xff)
+        buf = "{0:02X}".format((headerX & 0xff))
+        buf += "{0:02X}".format(((headerX >> 8) & 0xff))
+        buf += "{0:02X}".format((headerY & 0xff))
+        buf += "{0:02X}".format(((headerY >> 8) & 0xff))
         #self._raw(binascii.unhexlify(buf))
         for y in range(height):
             for x in range(width):
@@ -246,7 +256,7 @@ class Escpos(object):
 
                 i += 1
                 if i == 8:
-                    buf += ("%02X" % temp)
+                    buf += ("{0:02X}".format(temp))
                     mask = 0x80
                     i = 0
                     temp = 0
@@ -442,7 +452,7 @@ class Escpos(object):
         self._raw(bc_types[bc.upper()])
 
         if function_type.upper() == "B":
-            self._raw(chr(len(code)))
+            self._raw(six.int2byte(len(code)))
 
         # Print Code
         if code:
@@ -451,7 +461,7 @@ class Escpos(object):
             raise BarcodeCodeError()
 
         if function_type.upper() == "A":
-            self._raw("\x00")
+            self._raw(NUL)
 
     def text(self, txt):
         """ Print alpha-numeric text

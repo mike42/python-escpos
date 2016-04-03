@@ -24,7 +24,7 @@ matrix:
     - python: 3.5-dev
     - python: nightly
 before_install:
-    - pip install tox
+    - pip install tox codecov
 script:
     - tox
-
+    - codecov
