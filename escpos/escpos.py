@@ -21,7 +21,7 @@ from .constants import *
 from .exceptions import *
 
 from abc import ABCMeta, abstractmethod  # abstract base class support
-
+from escpos.image import EscposImage
 
 class Escpos(object):
     """ ESC/POS Printer object
@@ -49,17 +49,53 @@ class Escpos(object):
         """
         pass
 
-    def image(self, path_img):
-        """ Open and print an image file
+    def image(self, img_source, high_density_vertical = True, high_density_horizontal = True, impl = "graphics"):
+        """ Print an image
 
-        Prints an image. The image is automatically adjusted in size in order to print it.
+        :param img_source: PIL image or filename to load: `jpg`, `gif`, `png` or `bmp`
+        
+        """       
+        im = EscposImage(img_source)
+        
+        if impl is "bitImageRaster":
+            # GS v 0, raster format bit image
+            density_byte = (0 if high_density_vertical else 1) + (0 if high_density_horizontal else 2)
+            header = GS + b"v0" + six.int2byte(density_byte) + self._int_low_high(im.width_bytes, 2) + self._int_low_high(im.height, 2);
+            self._raw(header + im.to_raster_format())
+        
+        if impl is "graphics":
+            # GS ( L raster format graphics
+            img_header = self._int_low_high(im.width, 2) + self._int_low_high(im.height, 2);
+            tone = b'0';
+            colors = b'1';
+            ym = six.int2byte(1 if high_density_vertical else 2)
+            xm = six.int2byte(1 if high_density_horizontal else 2)
+            header = tone + xm + ym + colors + img_header
+            raster_data = im.to_raster_format()
+            self._image_send_graphics_data(b'0', b'p', header + raster_data);
+            self._image_send_graphics_data(b'0', b'2', b'');
+        
+        if impl is "bitImageColumn":
+            # ESC *, column format bit image
+            density_byte = (1 if high_density_horizontal else 0) + (32 if high_density_vertical else 0);
+            header = ESC + b"*" + six.int2byte(density_byte) + self._int_low_high( im.width, 2 );
+            outp = []
+            outp.append(ESC + b"3" + six.int2byte(16)) # Adjust line-feed size
+            for blob in im.to_column_format(high_density_vertical):
+                outp.append(header + blob + b"\n")
+            outp.append(ESC + b"2"); # Reset line-feed size
+            self._raw(b''.join(outp))
 
-        .. todo:: Seems to be broken. Write test that simply executes function with a dummy printer in order to
-                  check for bugs like these in the future.
-
-        :param path_img: complete filename and path to image of type `jpg`, `gif`, `png` or `bmp`
+    def _image_send_graphics_data(self, m, fn, data):
         """
-        pass
+        Wrapper for GS ( L, to calculate and send correct data length.
+        
+        :param m: Modifier//variant for function. Usually '0'
+        :param fn: Function number to use, as byte
+        :param data: Data to send
+        """
+        header = self._int_low_high(len(data) + 2, 2);
+        self._raw(GS + b'(L' + header + m + fn + data)
 
     def qr(self, text):
         """ Print QR Code for the provided string
@@ -77,6 +113,24 @@ class Escpos(object):
 
         # Convert the RGB image in printable image
         self._convert_image(im)
+
+    @staticmethod
+    def _int_low_high(inp_number, out_bytes):
+        """ Generate multiple bytes for a number: In lower and higher parts, or more parts as needed.
+        
+        :param inp_number: Input number
+        :param out_bytes: The number of bytes to output (1 - 4).
+        """
+        max_input = (256 << (out_bytes * 8) - 1);
+        if not 1 <= out_bytes <= 4:
+            raise ValueError("Can only output 1-4 byes")
+        if not 0 <= inp_number <= max_input:
+            raise ValueError("Number too large. Can only output up to {0} in {1} byes".format(max_input, out_bytes))
+        outp = b'';
+        for _ in range(0, out_bytes):
+            outp += six.int2byte(inp_number % 256)
+            inp_number = inp_number // 256
+        return outp
 
     def charcode(self, code):
         """ Set Character Code Table

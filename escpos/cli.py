@@ -223,7 +223,7 @@ ESCPOS_COMMANDS = [
         },
         'arguments': [
             {
-                'option_strings': ('--path_img',),
+                'option_strings': ('--img_source',),
                 'help': 'Path to image',
                 'required': True,
             },
