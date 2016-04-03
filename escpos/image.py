@@ -60,13 +60,6 @@ class EscposImage(object):
         _, height_pixels = self._im.size
         return height_pixels
 
-    @property
-    def height_bytes(self):
-        """
-        Height of image if you use 8 pixels per byte and 0-pad at the bottom.
-        """
-        return (self.height + 7) >> 3
-
     def to_column_format(self, high_density_vertical = True):
         """
         Extract slices of an image as equal-sized blobs of column-format data.
