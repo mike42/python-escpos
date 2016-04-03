@@ -57,13 +57,13 @@ class Escpos(object):
         """       
         im = EscposImage(img_source)
         
-        if impl is "bitImageRaster":
+        if impl == "bitImageRaster":
             # GS v 0, raster format bit image
             density_byte = (0 if high_density_vertical else 1) + (0 if high_density_horizontal else 2)
             header = GS + b"v0" + six.int2byte(density_byte) + self._int_low_high(im.width_bytes, 2) + self._int_low_high(im.height, 2);
             self._raw(header + im.to_raster_format())
         
-        if impl is "graphics":
+        if impl == "graphics":
             # GS ( L raster format graphics
             img_header = self._int_low_high(im.width, 2) + self._int_low_high(im.height, 2);
             tone = b'0';
@@ -75,7 +75,7 @@ class Escpos(object):
             self._image_send_graphics_data(b'0', b'p', header + raster_data);
             self._image_send_graphics_data(b'0', b'2', b'');
         
-        if impl is "bitImageColumn":
+        if impl == "bitImageColumn":
             # ESC *, column format bit image
             density_byte = (1 if high_density_horizontal else 0) + (32 if high_density_vertical else 0);
             header = ESC + b"*" + six.int2byte(density_byte) + self._int_low_high( im.width, 2 );
