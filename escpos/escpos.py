@@ -178,24 +178,6 @@ class Escpos(object):
             inp_number = inp_number // 256
         return outp
 
-    @staticmethod
-    def _int_low_high(inp_number, out_bytes):
-        """ Generate multiple bytes for a number: In lower and higher parts, or more parts as needed.
-        
-        :param inp_number: Input number
-        :param out_bytes: The number of bytes to output (1 - 4).
-        """
-        max_input = (256 << (out_bytes * 8) - 1);
-        if not 1 <= out_bytes <= 4:
-            raise ValueError("Can only output 1-4 byes")
-        if not 0 <= inp_number <= max_input:
-            raise ValueError("Number too large. Can only output up to {0} in {1} byes".format(max_input, out_bytes))
-        outp = b'';
-        for _ in range(0, out_bytes):
-            outp += six.int2byte(inp_number % 256)
-            inp_number = inp_number // 256
-        return outp
-
     def charcode(self, code):
         """ Set Character Code Table
 
