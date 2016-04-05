@@ -227,6 +227,22 @@ ESCPOS_COMMANDS = [
                 'help': 'Path to image',
                 'required': True,
             },
+            {
+                'option_strings': ('--impl',),
+                'help': 'Implementation to use',
+                'choices': ['bitImageRaster', 'bitImageColumn', 'graphics'],
+            },
+            {
+                'option_strings': ('--high_density_horizontal',),
+                'help': 'Image density (horizontal)',
+                'type': str_to_bool,
+            },     
+            {
+                'option_strings': ('--high_density_vertical',),
+                'help': 'Image density (vertical)',
+                'type': str_to_bool,
+            },      
+                      
         ],
     },
     {
