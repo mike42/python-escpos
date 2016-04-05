@@ -384,8 +384,8 @@ class Escpos(object):
         :param columns: amount of columns
         :return: None
         """
-        colCount = self.columns if columns is None else columns
-        self.text(textwrap.fill(txt, colCount))
+        col_count = self.columns if columns is None else columns
+        self.text(textwrap.fill(txt, col_count))
 
     def set(self, align='left', font='a', text_type='normal', width=1, height=1, density=9, invert=False, smooth=False, flip=False):
         """ Set text properties by sending them to the printer
@@ -567,7 +567,7 @@ class Escpos(object):
         :raises: :py:exc:`~escpos.exceptions.TabPosError`
         """
         # Set tab positions
-        if pos < 1 or pos > 16:
+        if not (1 <= pos <= 16):
             raise TabPosError()
         else:
             self._raw(CTL_SET_HT + six.int2byte(pos))
